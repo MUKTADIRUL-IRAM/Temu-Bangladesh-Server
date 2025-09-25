@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cors({
   //origin: ['http://localhost:5173',"2nd Url","3rd Url","....","..."]
     // origin: 'https://job-portal-90430.web.app', // Where your React app is running
-    origin: 'http://localhost:5173', // Where your React app is running
+    origin: ["http://localhost:5173",'https://gregarious-malasada-0cf325.netlify.app/'], // Where your React app is running
     credentials: true               // Allow cookies to be shared
 }));
 
