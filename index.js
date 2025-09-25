@@ -2,11 +2,19 @@ const express = require("express");
 const cors = require("cors");
 require('dotenv').config();
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const serverless = require('serverless-http');
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
-app.use(cors());
+// app.use(cors());
 app.use(express.json());
+
+app.use(cors({
+  //origin: ['http://localhost:5173',"2nd Url","3rd Url","....","..."]
+    // origin: 'https://job-portal-90430.web.app', // Where your React app is running
+    origin: 'http://localhost:5173', // Where your React app is running
+    credentials: true               // Allow cookies to be shared
+}));
 
 
 
@@ -24,7 +32,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    //await client.connect();
 
     const database = client.db('Temu_Bangladesh');
     const sampleProductCollection = database.collection('previewProducts');
@@ -443,7 +451,7 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    //await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
@@ -460,3 +468,6 @@ app.get('/',(req,res)=>{
 app.listen(port,()=>{
     console.log('Temu Server is working port : ',port);
 });
+
+ module.exports = app;
+ module.exports.handler = serverless(app);
