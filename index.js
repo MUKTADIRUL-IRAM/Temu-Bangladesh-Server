@@ -38,7 +38,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+   // await client.connect();
 
     const database = client.db('Temu_Bangladesh');
     const sampleProductCollection = database.collection('previewProducts');
@@ -592,9 +592,9 @@ app.get('/',(req,res)=>{
     res.send("Temu Server is working");
 });
 
-app.listen(port,()=>{
-    console.log('Temu Server is working port : ',port);
-});
+// app.listen(port,()=>{
+//     console.log('Temu Server is working port : ',port);
+// });
 
-//  module.exports = app;
-//  module.exports.handler = serverless(app);
+  module.exports = app;
+  module.exports.handler = serverless(app);
