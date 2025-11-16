@@ -10,15 +10,36 @@ const port = process.env.PORT || 5000;
 console.log("Running in:", process.env.NODE_ENV);
 
 
-app.use(cors({
-  //origin: ['http://localhost:5173',"2nd Url","3rd Url","....","..."]
-    // origin: 'https://job-portal-90430.web.app', // Where your React app is running
-    origin: ["http://localhost:5173",'https://temu-bangladesh.netlify.app'], // Where your React app is running
-    credentials: true,     // Allow cookies to be shared
-    optionsSuccessStatus: 200,
-    allowedHeaders: ["Content-Type", "Authorization"],
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]             
-}));
+// app.use(cors({
+//   //origin: ['http://localhost:5173',"2nd Url","3rd Url","....","..."]
+//     // origin: 'https://job-portal-90430.web.app', // Where your React app is running
+//     origin: ["http://localhost:5173",'https://temu-bangladesh.netlify.app'], // Where your React app is running
+//     credentials: true,     // Allow cookies to be shared
+//     optionsSuccessStatus: 200,
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]             
+// }));
+
+const allowedOrigins = ["http://localhost:5173", "https://temu-bangladesh.netlify.app"];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+
+  // Preflight requests
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  next();
+});
+
 
 
 // app.use(cors());cors = cross origin setup
