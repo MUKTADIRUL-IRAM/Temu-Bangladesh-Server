@@ -602,8 +602,10 @@ app.get('/',(req,res)=>{
 //     console.log('Temu Server is working port : ',port);
 // });
 
-  // module.exports = app;
+  
 
   const serverless = require('serverless-http');
+  module.exports = app;
   module.exports.handler = serverless(app);
+  
   
