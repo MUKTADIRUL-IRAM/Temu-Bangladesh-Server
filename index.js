@@ -10,9 +10,6 @@ const port = process.env.PORT || 5000;
 
 console.log("Running in:", process.env.NODE_ENV);
 
-// app.use(cors());cors = cross origin setup
-app.use(express.json());
-app.use(cookieParser());
 
 app.use(cors({
   //origin: ['http://localhost:5173',"2nd Url","3rd Url","....","..."]
@@ -24,8 +21,12 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]             
 }));
 
-// ✅ Handle all OPTIONS requests globally
-app.options('*', cors());
+
+// app.use(cors());cors = cross origin setup
+app.use(express.json());
+app.use(cookieParser());
+
+
 
 
 
