@@ -4,7 +4,7 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const serverless = require('serverless-http');
+//const serverless = require('serverless-http');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -592,9 +592,9 @@ app.get('/',(req,res)=>{
     res.send("Temu Server is working");
 });
 
-// app.listen(port,()=>{
-//     console.log('Temu Server is working port : ',port);
-// });
+app.listen(port,()=>{
+    console.log('Temu Server is working port : ',port);
+});
 
-  module.exports = app;
-  module.exports.handler = serverless(app);
+  // module.exports = app;
+  // module.exports.handler = serverless(app);
