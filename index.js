@@ -19,8 +19,13 @@ app.use(cors({
     // origin: 'https://job-portal-90430.web.app', // Where your React app is running
     origin: ["http://localhost:5173",'https://temu-bangladesh.netlify.app'], // Where your React app is running
     credentials: true,     // Allow cookies to be shared
-    optionsSuccessStatus: 200,             
+    optionsSuccessStatus: 200,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]             
 }));
+
+// ✅ Handle all OPTIONS requests globally
+app.options('*', cors());
 
 
 
@@ -38,7 +43,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-   // await client.connect();
+    await client.connect();
 
     const database = client.db('Temu_Bangladesh');
     const sampleProductCollection = database.collection('previewProducts');
@@ -106,7 +111,8 @@ async function run() {
     app.post('/logout',(req,res)=>{
       res.clearCookie('iram',{
         httpOnly:true,
-        secure:false,
+        secure:true,
+        sameSite:"none",
       })
       res.send({ message: 'Cookie cleared, logged out successfully'});
     });
