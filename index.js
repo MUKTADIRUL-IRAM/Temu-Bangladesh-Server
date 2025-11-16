@@ -1,19 +1,25 @@
 const express = require("express");
 const cors = require("cors");
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const serverless = require('serverless-http');
 const app = express();
 const port = process.env.PORT || 5000;
 
-// app.use(cors());
+console.log("Running in:", process.env.NODE_ENV);
+
+// app.use(cors());cors = cross origin setup
 app.use(express.json());
+app.use(cookieParser());
 
 app.use(cors({
   //origin: ['http://localhost:5173',"2nd Url","3rd Url","....","..."]
     // origin: 'https://job-portal-90430.web.app', // Where your React app is running
     origin: ["http://localhost:5173",'https://gregarious-malasada-0cf325.netlify.app'], // Where your React app is running
-    credentials: true               // Allow cookies to be shared
+    credentials: true,     // Allow cookies to be shared
+    optionsSuccessStatus: 200,             
 }));
 
 
@@ -32,7 +38,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    //await client.connect();
+    await client.connect();
 
     const database = client.db('Temu_Bangladesh');
     const sampleProductCollection = database.collection('previewProducts');
@@ -81,6 +87,121 @@ async function run() {
     const bagCollection = database.collection('tote-bag');
     const perfumeCollection = database.collection('premium-women-perfume');
 
+    //jwt token api
+    app.post('/jwt',async(req,res)=>{
+       const userEmail = req.body;
+      //Generating token
+      const token = jwt.sign(userEmail,process.env.JWT_ACCESS_SECRET,{expiresIn:"1h"});//jwt.sign(payload,secretKey,{expiresIn:""})
+      //Generating cookie
+      res.cookie('iram',token,{
+        httpOnly:true,
+        secure  : process.env.NODE_ENV === "production",// true only for HTTPS
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",// none for cross-site (prod), lax for local
+        path: "/", // cookie visible to all routes
+      })
+      res.send({token});
+    });
+
+    //Clearing token after logout
+    app.post('/logout',(req,res)=>{
+      res.clearCookie('iram',{
+        httpOnly:true,
+        secure:false,
+      })
+      res.send({ message: 'Cookie cleared, logged out successfully'});
+    });
+
+    const verifyJWT = (req,res,next)=>{
+
+      const token = req.cookies?.iram;
+     //No token at all
+      if(!token)
+      {
+        console.log('No token');
+        return res.status(401).send({message:"Unauthorized access"});
+      }
+
+      jwt.verify(token,process.env.JWT_ACCESS_SECRET,(err,decoded)=>{
+        //  There is token but not the correct one or expired token
+        if(err)
+        {
+          console.log("Not the correct token : ",err);
+          return res.status(401).send({message:"Unauthorized access"});
+        }
+        console.log("✅ Token verified successfully : ", decoded);
+        req.user = decoded;
+        next();
+      })
+    }
+
+    app.post('/new-comments/:id',async(req,res)=>{
+
+       // ✅ Pick the correct collection by name
+        const collections = {
+          "L-shape-sofa": sofaCollection,
+          "drone": droneCollection,
+          "toy-airplane": toyCollection,
+          "futon-sofa-bed": sofaBedCollection,
+          "portable-blender":blenderCollection,
+          "bullet-filler":bulletFillerCollection,
+          "mens-casual-shirt":menClothProductCollection,
+          "casual-sneakers":sneakersCollection,
+          "coffee-machine":coffeeMachineCollection,
+          "corduroy-jacket":jacketCollection,
+          "deep-fryer":deepFryerCollection,
+          "dining-table-set":diningTableCollection,
+          "electric-bike":bikeCollection,
+          "leather-handbag":leatherHandbagCollection,
+          "juicer-machine":juicerMachineCollection,
+          "cotton-long-sleeve":cottonSleeveCollection,
+          "ss-watch-men":luxuryWatchCollection,
+          "nintendo-switch":nintendoCollection,
+          "non-stick-pan":panCollection,
+          "long-sleeve":longSleeveCollection,
+          "recliner-chair":reclinerChairCollection,
+          "rotating-spice-rack":spiceCollection,
+          "e-sandwich-maker":sandwichCollection,
+          "smartwatch":smartWatchCollection,
+          "uv-protection-sunglass":sunGlassCollection,
+          "tote-bag":bagCollection,
+          "grooming-trimming-set":groomingTrimmingCollection,
+          "wooden-wine-bar":wineBarCollection,
+          "premium-women-perfume":perfumeCollection,
+          "portable-bbq":bbqCollection
+          // add more as needed
+      };
+
+       const {id} = req.params;  // product ID from URL
+       const{collection,...newComment}= req.body;  // { user_name, date, comment }
+
+       const targetCollection = collections[collection];
+       if (!targetCollection)
+        {
+          return res.status(400).send({ success: false, message: "Invalid collection name" });
+        }
+
+       try{
+            const result = await targetCollection.updateOne(
+              { _id  : new ObjectId(id)},// find the correct product
+              {$push : {review : newComment}}// add comment to review array
+            );
+
+            if(result.modifiedCount > 0)
+            {
+              res.send({success:true,insertedId : id});
+            }
+            else
+            {
+              res.status(404).send({success:false,message:'Product not found'});
+            }
+       }
+       catch(error){
+          console.log("Error adding comment:", error);
+          res.status(500).send({success:false,message:"Server Error"});
+        }
+
+    });
+
     app.get('/sampleproducts',async(req,res)=>{
 
       const cursor = sampleProductCollection.find();
@@ -105,8 +226,10 @@ async function run() {
 
     });
 
-    app.get('/showcase-products',async(req,res)=>{
-
+    app.get('/showcase-products',verifyJWT,async(req,res)=>{
+      console.log('Cookies received:', req.cookies); // 👈 debug line
+      console.log("User : ",req.user);
+      
       const cursor = showCaseProductCollection.find();
       const result = await cursor.toArray();
       res.send(result);
@@ -443,6 +566,10 @@ async function run() {
 
     });
 
+    
+
+
+
    
 
 
@@ -451,7 +578,7 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    //await client.db("admin").command({ ping: 1 });
+    await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
@@ -469,5 +596,5 @@ app.listen(port,()=>{
     console.log('Temu Server is working port : ',port);
 });
 
- module.exports = app;
- module.exports.handler = serverless(app);
+//  module.exports = app;
+//  module.exports.handler = serverless(app);
