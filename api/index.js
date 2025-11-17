@@ -3,6 +3,7 @@ const cors = require("cors");
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+ const serverless = require('serverless-http');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
@@ -13,7 +14,7 @@ console.log("Running in:", process.env.NODE_ENV);
 app.use(cors({
   //origin: ['http://localhost:5173',"2nd Url","3rd Url","....","..."]
     // origin: 'https://job-portal-90430.web.app', // Where your React app is running
-    origin: ["http://localhost:5173",'https://temu-bangladesh.netlify.app'], // Where your React app is running
+    origin: ["http://localhost:5173",'https://temu-bangladesh.netlify.app'], // Where your frontend is running
     credentials: true,     // Allow cookies to be shared
     optionsSuccessStatus: 200,
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -100,7 +101,7 @@ async function run() {
       //Generating cookie
       res.cookie('iram',token,{
         httpOnly:true,
-        secure  : process.env.NODE_ENV === "production",// true only for HTTPS
+        secure  : process.env.NODE_ENV === "production",// true only for HTTPS ; Locally, NODE_ENV=development → secure:false, sameSite:lax ; On Vercel, NODE_ENV=production → secure:true, sameSite:none
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",// none for cross-site (prod), lax for local
         path: "/", // cookie visible to all routes
       })
@@ -111,8 +112,8 @@ async function run() {
     app.post('/logout',(req,res)=>{
       res.clearCookie('iram',{
         httpOnly:true,
-        secure:true,
-        sameSite:"none",
+        secure:true, // false --> to run locally; true --> to run in production level
+        sameSite:"none", //"lax" --> to run locally; "none" --> to run in production level
       })
       res.send({ message: 'Cookie cleared, logged out successfully'});
     });
@@ -604,6 +605,6 @@ app.get('/',(req,res)=>{
 
   // module.exports = app;
 
-  const serverless = require('serverless-http');
+ 
   module.exports.handler = serverless(app);
   
