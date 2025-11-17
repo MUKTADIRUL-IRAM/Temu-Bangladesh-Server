@@ -15,7 +15,7 @@ const allowedOrigins = [
   "https://temu-bangladesh.netlify.app"
 ];
 
-const DB_URI = process.env.DB_URI || `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ditdntn.mongodb.net/?retryWrites=true&w=majority`;
+const DB_URI = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ditdntn.mongodb.net/?retryWrites=true&w=majority`;
 
 // --- Manual CORS middleware (handles preflight + credentials) ---
 app.use((req, res, next) => {
