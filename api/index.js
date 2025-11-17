@@ -573,16 +573,6 @@ async function run() {
 
     });
 
-    
-
-
-
-   
-
-
-
-
-
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -598,6 +588,9 @@ run().catch(console.dir);
 app.get('/',(req,res)=>{
     res.send("Temu Server is working");
 });
+
+  // Simple test route
+app.get('/ping', (req, res) => res.send("pong"));
 
 // app.listen(port,()=>{
 //     console.log('Temu Server is working port : ',port);
