@@ -101,8 +101,8 @@ async function run() {
       //Generating cookie
       res.cookie('iram',token,{
         httpOnly:true,
-        secure  : process.env.NODE_ENV === "production",// true only for HTTPS ; Locally, NODE_ENV=development → secure:false, sameSite:lax ; On Vercel, NODE_ENV=production → secure:true, sameSite:none
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",// none for cross-site (prod), lax for local
+        secure  : true,      //process.env.NODE_ENV === "production"// true only for HTTPS ; Locally, NODE_ENV=development → secure:false, sameSite:lax ; On Vercel, NODE_ENV=production → secure:true, sameSite:none
+        sameSite: "none",//process.env.NODE_ENV === "production" ? "none" : "lax"// none for cross-site (prod), lax for local
         path: "/", // cookie visible to all routes
       })
       res.send({token});
@@ -112,8 +112,8 @@ async function run() {
     app.post('/logout',(req,res)=>{
       res.clearCookie('iram',{
         httpOnly:true,
-        secure:false, // false --> to run locally; true --> to run in production level
-        sameSite:"lax", //"lax" --> to run locally; "none" --> to run in production level
+        secure:true, // false --> to run locally; true --> to run in production level
+        sameSite:"none", //"lax" --> to run locally; "none" --> to run in production level
       })
       res.send({ message: 'Cookie cleared, logged out successfully'});
     });
