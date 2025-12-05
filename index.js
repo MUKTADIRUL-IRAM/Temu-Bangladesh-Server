@@ -7,8 +7,8 @@ const cookieParser = require('cookie-parser');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
-
-console.log("Running in:", process.env.NODE_ENV);
+const isProduction = process.env.NODE_ENV === "production";
+//console.log("Running in:", process.env.NODE_ENV);
 
 
 app.use(cors({
@@ -101,8 +101,8 @@ async function run() {
       //Generating cookie
       res.cookie('iram',token,{
         httpOnly:true,
-        secure  : true,      //process.env.NODE_ENV === "production"// true only for HTTPS ; Locally, NODE_ENV=development → secure:false, sameSite:lax ; On Vercel, NODE_ENV=production → secure:true, sameSite:none
-        sameSite: "none",//process.env.NODE_ENV === "production" ? "none" : "lax"// none for cross-site (prod), lax for local
+        secure  : isProduction,        //process.env.NODE_ENV === "production"// true only for HTTPS ; Locally, NODE_ENV=development → secure:false, sameSite:lax ; On Vercel, NODE_ENV=production → secure:true, sameSite:none
+        sameSite: isProduction ? "none" : "lax",  //process.env.NODE_ENV === "production" ? "none" : "lax"// none for cross-site (prod), lax for local
         path: "/", // cookie visible to all routes
       })
       res.send({token});
@@ -112,8 +112,8 @@ async function run() {
     app.post('/logout',(req,res)=>{
       res.clearCookie('iram',{
         httpOnly:true,
-        secure:true, // false --> to run locally; true --> to run in production level
-        sameSite:"none", //"lax" --> to run locally; "none" --> to run in production level
+        secure:isProduction, // false --> to run locally; true --> to run in production level
+        sameSite:isProduction ? "none" : "lax", //"lax" --> to run locally; "none" --> to run in production level
         path: "/",
       })
       res.send({ message: 'Cookie cleared, logged out successfully'});
