@@ -114,6 +114,7 @@ async function run() {
         httpOnly:true,
         secure:true, // false --> to run locally; true --> to run in production level
         sameSite:"none", //"lax" --> to run locally; "none" --> to run in production level
+        path: "/",
       })
       res.send({ message: 'Cookie cleared, logged out successfully'});
     });
