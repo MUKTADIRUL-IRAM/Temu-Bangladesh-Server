@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "vercel dev",
-    "start": "node index.js",
+    "start": "echo \"No local server for serverless\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
