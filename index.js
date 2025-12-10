@@ -152,7 +152,7 @@ async function run() {
           "futon-sofa-bed": sofaBedCollection,
           "portable-blender":blenderCollection,
           "bullet-filler":bulletFillerCollection,
-          "mens-casual-shirt":menClothProductCollection,
+          "mens-casual-shirt":mensCasualShirtCollection,
           "casual-sneakers":sneakersCollection,
           "coffee-machine":coffeeMachineCollection,
           "corduroy-jacket":jacketCollection,
@@ -175,12 +175,15 @@ async function run() {
           "grooming-trimming-set":groomingTrimmingCollection,
           "wooden-wine-bar":wineBarCollection,
           "premium-women-perfume":perfumeCollection,
-          "portable-bbq":bbqCollection
+          "portable-bbq":bbqCollection,
+          "mens-cloth-product":menClothProductCollection
           // add more as needed
       };
 
        const {id} = req.params;  // product ID from URL
        const{collection,...newComment}= req.body;  // { user_name, date, comment }
+
+        console.log("Searching for product:", id, "inside:", collectionName);
 
        const targetCollection = collections[collection];
        if (!targetCollection)
