@@ -183,7 +183,7 @@ async function run() {
        const {id} = req.params;  // product ID from URL
        const{collection,...newComment}= req.body;  // { user_name, date, comment }
 
-        console.log("Searching for product:", id, "inside:", collectionName);
+        console.log("Searching for product:", id, "inside:", collection);
 
        const targetCollection = collections[collection];
        if (!targetCollection)
