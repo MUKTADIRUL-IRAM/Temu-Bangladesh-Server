@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const axios = require("axios");
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
@@ -25,6 +26,7 @@ app.use(cors({
 // app.use(cors());cors = cross origin setup
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.urlencoded());//Have to use it to get SSLCommerz 'Success' response because SSLCommerz sends/receives data in 'application/x-www-form-urlencoded'
 
 
 
@@ -92,6 +94,7 @@ async function run() {
     const diningTableCollection = database.collection('dining-table-set');
     const bagCollection = database.collection('tote-bag');
     const perfumeCollection = database.collection('premium-women-perfume');
+    const paymentCollection = database.collection('payment');
 
     //jwt token api
     app.post('/jwt',async(req,res)=>{
@@ -182,7 +185,8 @@ async function run() {
 
        const {id} = req.params;  // product ID from URL
        const{collection,...newComment}= req.body;  // { user_name, date, comment }
-
+        
+       //unnecessary line committed in github
         console.log("Searching for product:", id, "inside:", collection);
 
        const targetCollection = collections[collection];
@@ -212,6 +216,107 @@ async function run() {
         }
 
     });
+
+    //Step-1 -> Initialize-Payment
+    app.post("/create-ssl-payment",async(req,res)=>{
+      const payment = req.body;
+      console.log('PaymentInfo : ',payment);
+      
+      //Generating Transaction ID
+      const trxId = new ObjectId().toString();
+
+      payment.transactionId = trxId;
+      
+      //This is a form data packet for SSLCommerz
+      const initiate = {
+        store_id:"temub697dc7a736dab",
+        store_passwd:"temub697dc7a736dab@ssl",
+        total_amount: payment.price,
+        currency: 'BDT',
+        tran_id: trxId, // use unique tran_id for each api call
+        success_url: 'http://localhost:5000/success-payment',
+        fail_url: 'http://localhost:5173/fail',
+        cancel_url: 'http://localhost:5173/cancel',
+        ipn_url: 'http://localhost:5000/ipn-success-payment',
+        shipping_method: 'Courier',
+        product_name: 'Computer.',
+        product_category: 'Electronic',
+        product_profile: 'general',
+        cus_name: 'Customer Name',
+        cus_email: `${payment.email}`,//Retrieving information from payment
+        cus_add1: 'Dhaka',
+        cus_add2: 'Dhaka',
+        cus_city: 'Dhaka',
+        cus_state: 'Dhaka',
+        cus_postcode: '1000',
+        cus_country: 'Bangladesh',
+        cus_phone: '01711111111',
+        cus_fax: '01711111111',
+        ship_name: 'Customer Name',
+        ship_add1: 'Dhaka',
+        ship_add2: 'Dhaka',
+        ship_city: 'Dhaka',
+        ship_state: 'Dhaka',
+        ship_postcode: 1000,
+        ship_country: 'Bangladesh',
+      };
+
+      const encodedInitiate = new URLSearchParams(initiate).toString();
+      
+      //Step-2 -> This is where Backend talks to SSLCommerz and waits for response.SSLCommerz sends back "iniResponse.data" as response
+      const iniResponse = await axios({
+          url:"https://sandbox.sslcommerz.com/gwprocess/v4/api.php",
+          method:"POST",
+          data : encodedInitiate,
+          headers:{
+            "Content-Type" : "application/x-www-form-urlencoded",
+          },
+        });
+
+        const saveData = await paymentCollection.insertOne(payment);//Stoing Payment in Database
+        //Step-3 -> Get the Url for Payment
+        const gateWayUrl = iniResponse?.data?.GatewayPageURL
+   
+        console.log("gateWayUrl : ",gateWayUrl);
+        //Step-4 -> Redirect the customer to the gateway
+        res.send({gateWayUrl});
+      
+
+    });
+
+
+    //Success-Payment
+     app.post("/success-payment",async(req,res)=>{
+      //Step-5 -> Success payment data
+      const paymentSuccess = req.body;
+      console.log('Payment_Success_Info : ',paymentSuccess);
+
+      //Step-6 -> Validation
+      const isValidPayment = await axios.get(`https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php?val_id=${paymentSuccess.val_id}&store_id=temub697dc7a736dab&store_passwd=temub697dc7a736dab@ssl`);
+      console.log("isValidPayment : ",isValidPayment);
+
+      if(isValidPayment?.data?.status !== 'VALID')
+      {
+        return res.send({message : "Invalid payment"});
+      }
+
+      //Step-7 -> update the "Status" in paymentCollection in database 
+      const updatePayment = await paymentCollection.updateOne({transactionId:isValidPayment.data.tran_id},
+        {
+          $set:{
+            status:"success",
+          },
+        }
+      );
+
+      console.log("UpdatePayment : ",updatePayment);
+
+      res.redirect('http://localhost:5173/success');
+      
+
+      
+    });
+
 
     app.get('/sampleproducts',async(req,res)=>{
 
