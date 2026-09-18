@@ -15,7 +15,7 @@ const isProduction = process.env.NODE_ENV === "production";
 app.use(cors({
   //origin: ['http://localhost:5173',"2nd Url","3rd Url","....","..."]
     // origin: 'https://job-portal-90430.web.app', // Where your React app is running
-    origin: ["http://localhost:5173",'https://steady-sable-5c78ac.netlify.app'], // Where your frontend is running
+    origin: ["http://localhost:5173",'https://temubangladesh.netlify.app'], // Where your frontend is running
     credentials: true,     // Allow cookies to be shared
     optionsSuccessStatus: 200,
     allowedHeaders: ["Content-Type", "Authorization"],
